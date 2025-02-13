@@ -1,0 +1,121 @@
+# Общие системные файлы
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+*.swo
+
+# Файлы IDE и редакторов
+.vscode/
+.idea/
+*.iml
+venv/
+**/venv/
+
+# Логи и отладочные файлы
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+debug.log
+
+# Зависимости
+node_modules/
+vendor/
+
+# Билд артефакты
+/dist
+/build
+/out
+*.o
+*.a
+*.so
+*.exe
+*.dll
+*.dylib
+
+# Файлы окружения
+.env
+.env.local
+.env.*.local
+
+# Кэш и временные файлы
+*.log
+*.cache
+*.pid
+*.seed
+*.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Java
+*.class
+
+# Go
+*.exe
+*.test
+*.out
+
+# Rust
+/target/
+
+# PHP
+/vendor/
+
+# Ruby
+*.gem
+.bundle/
+
+# Dotnet
+bin/
+obj/
+
+# Docker
+*.tar
+*.container
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Git
+*.orig
+*.rej
+*.patch
+.git/*
+!.git/HEAD
+!.git/config
+!.git/description
+!.git/refs
+!.git/hooks
+!.git/info
+!.git/logs
+
+# Другие
+*.bak
+*.old
+*.swp
+*.swo
+*.tmp
+*.backup
+*.orig
+
+# macOS
+*.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.nfs*
