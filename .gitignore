@@ -11,6 +11,7 @@ Thumbs.db
 *.iml
 venv/
 **/venv/
+*.db
 
 # Логи и отладочные файлы
 npm-debug.log*
