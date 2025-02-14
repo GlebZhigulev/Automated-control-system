@@ -1,13 +1,11 @@
 from fastapi import FastAPI
-from .routes import auth, users
-from .database import Base, engine
+from back.api.v1 import auth, users
+from back.database import Base, engine
 
 app = FastAPI()
 
-Base.metadata.create_all(bind=engine)
-
-app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-app.include_router(users.router, prefix="/api/users", tags=["users"])
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 
 @app.get("/")
 def home():
