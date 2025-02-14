@@ -1,11 +1,13 @@
 from sqlalchemy.orm import Session
 from .database import SessionLocal, engine, Base
 from .models import User
-from .routes.auth import hash_password
+from .api.v1.auth import hash_password
 
-Base.metadata.create_all(bind=engine)
+
+
 
 def initialize_db():
+    Base.metadata.create_all(bind=engine)
     db: Session = SessionLocal()
     
     users = [
