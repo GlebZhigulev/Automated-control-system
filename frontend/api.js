@@ -3,7 +3,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3000/api', // базовый URL для всех запросов
+  baseURL: 'http://localhost:8000/api/v1', // базовый URL для всех запросов
   timeout: 5000, // таймаут запроса
 });
 
