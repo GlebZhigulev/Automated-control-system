@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3000/api', // Базовый URL сервера
+  baseURL: 'http://localhost:8000/api/v1', // Базовый URL сервера
   timeout: 5000,
 });
 

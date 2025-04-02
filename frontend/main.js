@@ -5,6 +5,7 @@ import isDev from 'electron-is-dev';
 import { login } from './api.js';
 import Store from 'electron-store';
 
+
 // Определяем __dirname для ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,7 +13,21 @@ const __dirname = path.dirname(__filename);
 let mainWindow;
 let userRole = null;
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // Импортируем electron-reload только если в режиме разработки
+  if (isDev) {
+    const { createRequire } = await import('module');
+    const require = createRequire(import.meta.url);
+    const electronReload = require('electron-reload'); // Используем require для совместимости с ESM
+
+    electronReload(path.join(__dirname, 'react-app'), {
+      electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
+      forceHardReset: true,
+      hardResetMethod: 'exit',
+    });
+  }
+
+  // Создание окна
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -24,7 +39,7 @@ app.whenReady().then(() => {
   });
 
   if (isDev) {
-    mainWindow.loadURL('http://localhost:3001/');
+    mainWindow.loadURL('http://localhost:3001'); // если dev-сервер React
   } else {
     mainWindow.loadFile(path.join(__dirname, 'react-app/build/index.html'));
   }
