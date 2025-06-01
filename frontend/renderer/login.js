@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Перенаправляем на Dashboard
         window.location.href = './dashboard.html';
       } else {
-        alert(response.message || 'Ошибка при входе');
+        alert(response.message || 'Неверные данные пользователя');
       }
     });
   });

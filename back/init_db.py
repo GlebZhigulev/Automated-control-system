@@ -13,6 +13,7 @@ def initialize_db():
     users = [
         {"username": "admin", "password": hash_password("admin123"), "role": "admin"},
         {"username": "operator", "password": hash_password("operator123"), "role": "operator"},
+        {"username": "analyst", "password": hash_password("analyst"), "role": "analyst"},
     ]
     
     for user in users:
