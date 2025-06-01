@@ -18,7 +18,7 @@ const Dashboard = () => {
       {/* Основное содержимое */}
       <Box sx={{ flexGrow: 1, p: 3 }}>
         <Typography variant="h4">Добро пожаловать!</Typography>
-        <Typography variant="subtitle1">Ваша роль: {userRole}</Typography>
+        <Typography variant="subtitle1">Ваша роль: Администратор</Typography>
       </Box>
 
       {/* Нижний футер */}

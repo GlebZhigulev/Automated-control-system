@@ -1,5 +1,6 @@
 fastapi
 sqlalchemy
 passlib
-jwt
+PyJWT
 python-dotenv
+uvicorn

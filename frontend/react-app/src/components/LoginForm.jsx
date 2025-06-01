@@ -16,7 +16,7 @@ const LoginForm = () => {
     if (success) {
       navigate('/dashboard');
     } else {
-      alert('Ошибка при входе');
+      alert('Неверные данные пользователя');
     }
   };
 
@@ -32,7 +32,7 @@ const LoginForm = () => {
       }}
     >
       <Typography variant="h4" component="h2" gutterBottom align="center">
-        Вход
+        Вход в систему "Дорожный контроль"
       </Typography>
       <form onSubmit={handleSubmit}>
         <TextField

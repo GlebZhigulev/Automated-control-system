@@ -19,3 +19,6 @@ app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 @app.get("/")
 def home():
     return {"message": "FastAPI server is running!"}
+
+
+PX4_ADDRESS = "udp://172.24.221.68:14540"
