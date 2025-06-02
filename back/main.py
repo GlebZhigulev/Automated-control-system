@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from back.api.v1 import auth, users
+from back.api.v1 import auth, users, routes, flight_plans
 from back.database import Base, engine
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,9 +13,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
-
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(routes.router, prefix="/routes", tags=["routes"])
+app.include_router(flight_plans.router, prefix="/routes", tags=["routes"])
 @app.get("/")
 def home():
     return {"message": "FastAPI server is running!"}
