@@ -18,3 +18,19 @@ def delete_user(db: Session, user_id: int):
         db.delete(db_user)
         db.commit()
     return db_user
+
+def get_user_by_id(db: Session, user_id: int):
+    return db.query(User).filter(User.id == user_id).first()
+
+def get_all_users(db: Session):
+    return db.query(User).all()
+
+def update_user(db: Session, user_id: int, user_data: UserCreate, hashed_password: str):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return None
+    user.username = user_data.username
+    user.password = hashed_password
+    user.role = user_data.role
+    db.commit()
+    return user

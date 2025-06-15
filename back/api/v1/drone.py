@@ -1,55 +1,75 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import JSONResponse
-from random import randint, uniform
-from back.database import get_db
+from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.orm import Session
+from typing import List
+from datetime import datetime
+import secrets
+import string
 
-router = APIRouter(prefix="/drone", tags=["drone"])
+from back.models import Drone as DroneModel
+from back.schemas import DroneCreate, DroneResponse
+from back.database import get_db
+from back.api.v1.auth import get_current_user, hash_password
+from back.schemas import UserCreate
+from back.crud.crud_users import create_user
+from back.crud.crud_drone import create_drone as db_create_drone, get_all_drones, get_drone_by_id, update_drone, delete_drone
 
-@router.get("/{id}/status")
-def get_drone_status(id: int):
-    # Эмуляция статуса дрона
+router = APIRouter(prefix="/drones", tags=["БПЛА"])
+
+@router.post("/", response_model=dict, status_code=status.HTTP_201_CREATED, summary="Добавление нового БПЛА")
+def create_drone(drone: DroneCreate, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
+    if user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    new_drone = db_create_drone(db, drone.name, drone.model, drone.serial_number)
+
+    username = f"drone-{new_drone.id}"
+
+    # 🔐 Генерация безопасного случайного пароля (10 символов: буквы + цифры)
+    alphabet = string.ascii_letters + string.digits
+    password = ''.join(secrets.choice(alphabet) for _ in range(10))
+
+    drone_user = UserCreate(username=username, password=password, role="drone")
+    hashed_pw = hash_password(password)
+    create_user(db, drone_user, hashed_pw)
+
     return {
-        "status": "доступен",
-        "battery": randint(50, 100),
-        "gps_fix": True,
-        "connection": "active"
+        "id": new_drone.id,
+        "message": "БПЛА и учётная запись успешно добавлены",
+        "credentials": {
+            "username": username,
+            "password": password 
+        }
     }
 
-@router.post("/connect")
-def connect_autopilot(data: dict):
-    flight_plan_id = data.get("flight_plan_id")
-    if not flight_plan_id:
-        raise HTTPException(status_code=400, detail="flight_plan_id is required")
-    return {"message": "Маршрут успешно загружен в автопилот"}
+@router.get("/", response_model=List[DroneResponse], summary="Получение списка всех БПЛА")
+def read_drones(db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
+    if user["role"] not in ["admin", "operator", "analyst"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return get_all_drones(db)
 
-@router.post("/{id}/start")
-def start_mission(id: int, data: dict):
-    return {"message": "Полёт начат"}
+@router.get("/{drone_id}", response_model=DroneResponse, summary="Получение информации о БПЛА")
+def read_drone(drone_id: int, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
+    if user["role"] not in ["admin", "operator", "analyst"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    drone = get_drone_by_id(db, drone_id)
+    if not drone:
+        raise HTTPException(status_code=404, detail="БПЛА не найден")
+    return drone
 
-@router.post("/emergency-stop")
-def emergency_stop():
-    return {"message": "Аварийная посадка инициирована"}
+@router.put("/{drone_id}", response_model=DroneResponse, summary="Обновление информации о БПЛА")
+def update_drone_info(drone_id: int, updates: dict, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
+    if user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+    updated = update_drone(db, drone_id, updates)
+    if not updated:
+        raise HTTPException(status_code=404, detail="БПЛА не найден")
+    return updated
 
-@router.get("/{id}/telemetry")
-def get_telemetry(id: int):
-    return {
-        "latitude": 59.9386 + uniform(-0.0005, 0.0005),
-        "longitude": 30.3141 + uniform(-0.0005, 0.0005),
-        "altitude": round(uniform(40.0, 50.0), 2),
-        "speed": round(uniform(3.0, 5.0), 2),
-        "battery": randint(60, 100),
-        "gps_fix": True
-    }
-
-@router.get("/video-url")
-def get_video_url():
-    return {"video_url": "rtsp://drone.local/live"}
-
-@router.get("/mission-status")
-def mission_status():
-    return {
-        "current_waypoint": randint(1, 5),
-        "total_waypoints": 10,
-        "status": "в процессе"
-    }
+@router.delete("/{drone_id}", summary="Удаление БПЛА")
+def delete_drone_entry(drone_id: int, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
+    if user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+    deleted = delete_drone(db, drone_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="БПЛА не найден")
+    return {"message": "БПЛА успешно удалён"}

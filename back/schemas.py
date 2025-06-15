@@ -1,16 +1,24 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import List, Optional
 from datetime import datetime
 
+# ----------- Общие -----------
+class MessageResponse(BaseModel):
+    message: str
+    id: Optional[int] = None
 
-# === USERS ===
+class AuthResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int = 3600
 
+# ----------- Пользователи -----------
 class UserBase(BaseModel):
     username: str
-    role: str
 
 class UserCreate(UserBase):
     password: str
+    role: str
 
 class UserLogin(BaseModel):
     username: str
@@ -18,138 +26,112 @@ class UserLogin(BaseModel):
 
 class UserResponse(UserBase):
     id: int
+    role: str
+    registered_at: Optional[datetime] = None
+
+# ----------- Маршруты и точки -----------
+class RouteCreate(BaseModel):
+    name: str
+    waypoints: List[List[float]]
+    user_id: int
+    drone_id: int
+    status: Optional[str] = "planned"
+
+class RouteResponse(BaseModel):
+    id: int
+    name: str
+    status: Optional[str] = None
+    waypoints: List[List[float]]
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+# ----------- Планы вылетов -----------
+class FlightRequestCreate(BaseModel):
+    route_id: int
+    operator_id: int
+    drone_id: int 
+    scheduled_date: datetime
+    status: Optional[str] = "scheduled"
 
+class FlightRequestResponse(BaseModel):
+    id: int
+    route_id: int
+    operator_id: int
+    drone_id: int 
+    scheduled_date: datetime
+    status: str
 
-# === DRONES ===
+# ----------- Видео -----------
+class VideoUploadResponse(BaseModel):
+    id: int
+    filename: str
+    flight_plan_id: int
+    operator_id: int
+    uploaded_at: datetime
+    status: str
 
+class VideoInfoResponse(VideoUploadResponse):
+    duration: int
+    analysis_result_id: int
+    file_path: str
+
+# ----------- Дефекты -----------
+class DefectResponse(BaseModel):
+    id: int
+    coordinates: List[float]
+    defect_path: str
+    original_image_path: str
+
+# ----------- Отчёты -----------
+class ReportSummaryDefect(BaseModel):
+    id: int
+    coordinates: List[float]
+    defect_path: str
+    original_image_path: str
+
+class ReportResponse(BaseModel):
+    report_id: int
+    video_id: int
+    flight_plan_id: int
+    summary: str
+    defects: List[ReportSummaryDefect]
+    created_at: datetime
+    pdf_path: str
+
+class ReportShort(BaseModel):
+    report_id: int
+    video_id: int
+    flight_plan_id: int
+    created_at: datetime
+    pdf_path: str
+
+# ----------- БПЛА -----------
 class DroneBase(BaseModel):
     name: str
-    status: Optional[str] = "available"
+    model: str
 
 class DroneCreate(DroneBase):
+    serial_number: str
+
+class DroneUpdate(DroneBase):
     pass
 
 class DroneResponse(DroneBase):
     id: int
-
-    class Config:
-        from_attributes = True
-
-
-# === ROUTES ===
-
-class RouteBase(BaseModel):
-    name: str
-    status: Optional[str] = "planned"
-    drone_id: Optional[int]
-
-class RouteCreate(RouteBase):
-    user_id: int
-
-class RouteResponse(RouteBase):
-    id: int
-    user_id: int
+    serial_number: str
+    status: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
-
-# === WAYPOINTS ===
-
-class WayPointBase(BaseModel):
-    latitude: float
-    longitude: float
-    altitude: float
-    order: int
-    hold_time: float
-
-class WayPointCreate(WayPointBase):
-    route_id: int
-
-class WayPointResponse(WayPointBase):
-    id: int
-    route_id: int
-
-    class Config:
-        from_attributes = True
-
-
-# === FLIGHT REQUESTS ===
-
-class FlightRequestBase(BaseModel):
-    route_id: int
-    operator_id: int
-    scheduled_date: datetime
-    status: Optional[str] = "scheduled"
-
-class FlightRequestCreate(FlightRequestBase):
-    pass
-
-class FlightRequestResponse(FlightRequestBase):
-    id: int
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-# === VIDEOS ===
-
-class VideoBase(BaseModel):
-    flight_request_id: int
-    file_path: str
-
-class VideoCreate(VideoBase):
-    pass
-
-class VideoResponse(VideoBase):
-    id: int
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-# === DEFECT DETECTIONS ===
-
-class DefectDetectionBase(BaseModel):
-    video_id: int
-    image_path: str
-    latitude: float
-    longitude: float
-    confidence: float
-
-class DefectDetectionCreate(DefectDetectionBase):
-    pass
-
-class DefectDetectionResponse(DefectDetectionBase):
-    id: int
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-# === TELEMETRY ===
 
 class TelemetryBase(BaseModel):
+    file_path: str
     flight_request_id: int
-    timestamp: datetime
-    latitude: float
-    longitude: float
-    altitude: float
-    velocity: float
 
 class TelemetryCreate(TelemetryBase):
     pass
 
 class TelemetryResponse(TelemetryBase):
     id: int
+    created_at: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True

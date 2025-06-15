@@ -4,14 +4,12 @@ from .models import User
 from .api.v1.auth import hash_password
 
 
-
-
 def initialize_db():
     Base.metadata.create_all(bind=engine)
     db: Session = SessionLocal()
     
     users = [
-        {"username": "admin", "password": hash_password("admin123"), "role": "admin"},
+        {"username": "admin", "password": hash_password("admin123"), "role": "admin" },
         {"username": "operator", "password": hash_password("operator123"), "role": "operator"},
         {"username": "analyst", "password": hash_password("analyst"), "role": "analyst"},
     ]

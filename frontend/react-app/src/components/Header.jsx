@@ -26,7 +26,10 @@ const Header = () => {
           <Button color="inherit" onClick={() => navigate('/users')}>
             Пользователи
           </Button>
-          <Button color="inherit" onClick={() => navigate('/users')}>
+          <Button color="inherit" onClick={() => navigate('/drone')}>
+            БПЛА
+          </Button>
+          <Button color="inherit" onClick={() => navigate('/logging')}>
             Аналитика
           </Button>
           </>
@@ -36,9 +39,9 @@ const Header = () => {
         {userRole === 'operator' && (
           <>
             <Button color="inherit" onClick={() => navigate('/operator')}>
-              Выполнение миссии
+              Выполнение полета
             </Button>
-            <Button color="inherit" onClick={() => navigate('/routes')}>
+            <Button color="inherit" onClick={() => navigate('/flights')}>
               Планы полетов
             </Button>
           </>
@@ -47,14 +50,17 @@ const Header = () => {
         {/* Роль analyst */}
         {userRole === 'analyst' && (
           <>
-            <Button color="inherit" onClick={() => navigate('/report')}>
+            <Button color="inherit" onClick={() => navigate('/analyst')}>
               Анализ дефектов
+            </Button>
+            <Button color="inherit" onClick={() => navigate('/flightplans')}>
+              Планирование полетов
             </Button>
             <Button color="inherit" onClick={() => navigate('/routes')}>
               Маршруты
             </Button>
-            <Button color="inherit" onClick={() => navigate('/history')}>
-              История маршрутов
+            <Button color="inherit" onClick={() => navigate('/reports')}>
+              Отчеты
             </Button>
           </>
         )}

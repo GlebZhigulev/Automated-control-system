@@ -1,108 +1,115 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Box, Typography, Paper, Grid, Table, TableHead, TableRow, TableCell, TableBody, Button, Dialog, DialogTitle, DialogContent } from '@mui/material';
+import React, { useState } from 'react';
+import {
+  Box, Typography, Paper, Table, TableHead, TableBody, TableRow,
+  TableCell, TextField, MenuItem, Select, InputLabel, FormControl, Button
+} from '@mui/material';
 import Header from './Header.jsx';
 import Footer from './Footer.jsx';
 
-const routeInfo = {
-  name: 'Маршрут 1',
-  operator: 'Оператор А',
-  drone: 'БПЛА-1',
-  date: '2025-05-25',
-  coords: [
-    [59.9343, 30.3351],
-    [59.9360, 30.3382],
-    [59.9375, 30.3421]
-  ]
-};
 
-const defects = [
-  { id: 1, coords: [59.9351, 30.3360], image: 'https://via.placeholder.com/400x300?text=Defect+1' },
-  { id: 2, coords: [59.9368, 30.3400], image: 'https://via.placeholder.com/400x300?text=Defect+2' }
+const sampleReports = [
+  {
+    id: 1,
+    route: 'Маршрут 1',
+    operator: 'operator1',
+    flightDate: '2025-06-05',
+    createdAt: '2025-06-06',
+    status: 'создан',
+    fileUrl: '/assets/report1.pdf',
+  },
+  {
+    id: 2,
+    route: 'Маршрут 2',
+    operator: 'operator2',
+    flightDate: '2025-06-01',
+    createdAt: '2025-06-02',
+    status: 'обновлён',
+    fileUrl: '/assets/report2.pdf',
+  }
 ];
 
 const ReportView = () => {
-  const mapRef = useRef(null);
-  const [openImage, setOpenImage] = useState(null);
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('createdAt');
 
-  useEffect(() => {
-    if (window.ymaps) {
-      window.ymaps.ready(() => {
-        const map = new window.ymaps.Map(mapRef.current, {
-          center: routeInfo.coords[0],
-          zoom: 14,
-          controls: ['zoomControl']
-        });
+  const filteredReports = [...sampleReports]
+    .filter(r =>
+      r.route.toLowerCase().includes(search.toLowerCase()) ||
+      r.flightDate.includes(search)
+    )
+    .sort((a, b) => {
+      if (sortBy === 'createdAt') return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortBy === 'route') return a.route.localeCompare(b.route);
+      return 0;
+    });
 
-        const routeLine = new window.ymaps.Polyline(routeInfo.coords, {}, {
-          strokeColor: '#0000FF',
-          strokeWidth: 4
-        });
-        map.geoObjects.add(routeLine);
+  const openPDF = (url) => {
+    window.open(url, '_blank');
+  };
 
-        defects.forEach(defect => {
-          const marker = new window.ymaps.Placemark(defect.coords, {
-            balloonContent: `Дефект ID: ${defect.id}`
-          }, {
-            preset: 'islands#redIcon'
-          });
-          map.geoObjects.add(marker);
-        });
-      });
-    }
-  }, []);
+  const downloadPDF = (url) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = url.split('/').pop();
+    link.click();
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Header />
-
+      <br />
       <Box sx={{ flexGrow: 1, p: 3 }}>
-        <Typography variant="h4" gutterBottom>Отчёт по маршруту</Typography>
+        <Typography variant="h4" gutterBottom>Отчёты</Typography>
 
-        <Paper sx={{ p: 2, mb: 3 }}>
-          <Typography variant="h6">Общая информация</Typography>
-          <Typography>Название маршрута: <strong>{routeInfo.name}</strong></Typography>
-          <Typography>Оператор: <strong>{routeInfo.operator}</strong></Typography>
-          <Typography>БПЛА: <strong>{routeInfo.drone}</strong></Typography>
-          <Typography>Дата выполнения: <strong>{routeInfo.date}</strong></Typography>
-        </Paper>
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <TextField
+            label="Поиск по маршруту или дате"
+            fullWidth
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel>Сортировать по</InputLabel>
+            <Select
+              value={sortBy}
+              label="Сортировать по"
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <MenuItem value="createdAt">Дате создания</MenuItem>
+              <MenuItem value="route">Маршруту</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
 
-        <Paper sx={{ p: 2, mb: 3 }}>
-          <Typography variant="h6" gutterBottom>Карта маршрута</Typography>
-          <Box sx={{ height: 300 }}>
-            <div ref={mapRef} id="yandex-map-report" style={{ width: '100%', height: '100%' }} />
-          </Box>
-        </Paper>
-
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6" gutterBottom>Список дефектов</Typography>
+        <Paper>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Координаты</TableCell>
+                <TableCell>Маршрут</TableCell>
+                <TableCell>Оператор</TableCell>
+                <TableCell>Дата полёта</TableCell>
+                <TableCell>Дата отчёта</TableCell>
+                <TableCell>Статус</TableCell>
                 <TableCell>Действия</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {defects.map(defect => (
-                <TableRow key={defect.id}>
-                  <TableCell>{defect.id}</TableCell>
-                  <TableCell>{defect.coords[0]}, {defect.coords[1]}</TableCell>
+              {filteredReports.map(report => (
+                <TableRow key={report.id}>
+                  <TableCell>{report.route}</TableCell>
+                  <TableCell>{report.operator}</TableCell>
+                  <TableCell>{report.flightDate}</TableCell>
+                  <TableCell>{report.createdAt}</TableCell>
+                  <TableCell>{report.status}</TableCell>
                   <TableCell>
-                    <Button variant="outlined" onClick={() => setOpenImage(defect.image)}>Показать изображение</Button>
+                    <Button size="small" onClick={() => openPDF(report.fileUrl)}>Просмотр</Button>
+                    <Button size="small" onClick={() => downloadPDF(report.fileUrl)}>Скачать</Button>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </Paper>
-
-        <Dialog open={!!openImage} onClose={() => setOpenImage(null)} maxWidth="md">
-          <DialogTitle>Изображение дефекта</DialogTitle>
-          <DialogContent>
-            <img src={openImage} alt="Defect" style={{ width: '100%', height: 'auto' }} />
-          </DialogContent>
-        </Dialog>
       </Box>
 
       <Footer />

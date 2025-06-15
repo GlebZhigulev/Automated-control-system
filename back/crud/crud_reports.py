@@ -21,3 +21,11 @@ def get_all_reports(db: Session):
 
 def get_report_by_id(db: Session, report_id: int):
     return db.query(Report).filter(Report.id == report_id).first()
+
+def delete_report(db: Session, report_id: int):
+    report = get_report_by_id(db, report_id)
+    if not report:
+        return None
+    db.delete(report)
+    db.commit()
+    return report

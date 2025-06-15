@@ -1,44 +1,41 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+
 from back.database import get_db
-from back.models import User
-from back.schemas import UserResponse
-from back.schemas import UserCreate
+from back.schemas import UserCreate, UserResponse, MessageResponse
 from back.api.v1.auth import get_current_user, hash_password
+from back.crud import crud_users
 
-router = APIRouter()
+router = APIRouter(prefix="/users", tags=["Пользователи"])
 
-@router.get("/", response_model=list[UserResponse])
-def get_users(db: Session = Depends(get_db)):
-    return db.query(User).all()
-
-@router.delete("/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
-    if user["role"] != "admin":
+@router.get("/", response_model=list[UserResponse], summary="Получение списка пользователей")
+def get_users(db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
+    if user["role"] == "admin":
+        return crud_users.get_all_users(db)
+    elif user["role"] == "analyst":
+        return [u for u in crud_users.get_all_users(db) if u.role == "operator"]
+    else:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    db_user = db.query(User).filter(User.id == user_id).first()
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+@router.get("/me", response_model=UserResponse, summary="Получение данных текущего пользователя")
+def get_myself(user: dict = Depends(get_current_user)):
+    return user
 
-    db.delete(db_user)
-    db.commit()
-    return {"message": "User deleted"}
-
-@router.put("/{user_id}", response_model=UserResponse)
+@router.put("/{user_id}", response_model=MessageResponse, summary="Обновление пользователя")
 def update_user(user_id: int, user_data: UserCreate, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
     if user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Access denied")
-
-    db_user = db.query(User).filter(User.id == user_id).first()
-    if not db_user:
+    hashed_pw = hash_password(user_data.password)
+    updated = crud_users.update_user(db, user_id, user_data, hashed_pw)
+    if not updated:
         raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "Данные пользователя обновлены"}
 
-    db_user.username = user_data.username
-    db_user.password = hash_password(user_data.password)
-    db_user.role = user_data.role
-
-    db.commit()
-    db.refresh(db_user)
-
-    return db_user
+@router.delete("/{user_id}", response_model=MessageResponse, summary="Удаление пользователя")
+def delete_user(user_id: int, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
+    if user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+    deleted = crud_users.delete_user(db, user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "Пользователь удалён"}
